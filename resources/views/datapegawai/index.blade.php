@@ -101,9 +101,6 @@
                             </td>
                             <td>{{ $p->no_hp }}</td>
                             <td class="text-center">
-                                <button class="btn btn-info btn-sm view-btn" data-id="{{ $p->id }}">
-                                    <i class="fas fa-eye"></i>
-                                </button>
                                 <button class="btn btn-warning btn-sm edit-btn" data-id="{{ $p->id }}">
                                     <i class="fas fa-edit"></i>
                                 </button>

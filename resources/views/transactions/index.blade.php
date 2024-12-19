@@ -95,10 +95,10 @@
             </div>
         </div>
         <div class="d-flex justify-content-between mb-3 align-items-center">
-            <a href="{{ route('expenses.index') }}" class="btn btn-info btn-lg ml-3">
+            <a href="{{ route('expenses.index') }}" class="btn btn-info btn-ml ml-3">
                 <i class="fas fa-money-bill-wave"></i> Lihat Pengeluaran
             </a>
-            <a href="{{ route('transactions.export.pdf') }}" class="btn btn-danger btn-lg mr-3">Export PDF</a>
+            <a href="{{ route('transactions.export.pdf') }}" class="btn btn-danger btn-ml mr-3">Export PDF</a>
         </div>
     </div>
 </div>
