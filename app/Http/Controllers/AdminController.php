@@ -28,7 +28,7 @@ class AdminController extends Controller
         if ($admin) {
             // Simpan email admin di session
             session(['admin_email' => $admin->email]);
-            
+
             // Redirect ke halaman home
             return redirect()->route('Home');
         }
@@ -42,12 +42,12 @@ class AdminController extends Controller
     {
         // Hapus semua data session admin
         $request->session()->forget(['admin_email']);
-        
+
         // Invalidate session dan regenerate token
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
+
         // Redirect ke halaman home alih-alih halaman utama
         return redirect()->route('Home')->with('success', 'Berhasil logout');
     }
-} 
+}

@@ -15,11 +15,11 @@ class AdminSeeder extends Seeder
     {
         DB::table('admin_login')->insert([
             [
-                'email' => 'chelsea@aero.ac.id',
-                'password' => '364726',
+                'email' => 'admin@admin.com',
+                'password' => 'admin123',
                 'created_at' => now(),
                 'updated_at' => now()
-            ]
+            ],
         ]);
     }
 }

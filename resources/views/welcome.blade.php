@@ -586,7 +586,7 @@
                     <div class="price-card">
                         <div class="price-header">
                             <h3>Paket Reguler</h3>
-                            <div class="price-amount">{{$data[0]->price}}</div>
+                            <div class="price-amount">Rp 12.000</div>
                             <div class="price-period">per galon</div>
                         </div>
                         <ul class="price-features">
@@ -621,7 +621,7 @@
                     <div class="price-card">
                         <div class="price-header">
                             <h3>Paket Agen</h3>
-                            <div class="price-amount">{{$data[1]->price}}</div>
+                            <div class="price-amount">Rp 10.000</div>
                             <div class="price-period">per galon (min. 10 galon)</div>
                         </div>
                         <ul class="price-features">
@@ -686,8 +686,8 @@
         </div>
     </section>
 
-    {{-- <!-- Galeri Produk -->
-    <section class="gallery-section section-padding">
+    <!-- Galeri Produk -->
+    <!-- <section class="gallery-section section-padding">
         <div class="container">
             <h2 class="text-center section-title">Galeri Produk</h2>
             <div class="row">
@@ -702,7 +702,7 @@
                 </div>
             </div>
         </div>
-    </section> --}}
+    </section> -->
 
     <!-- Floating WhatsApp -->
     <div class="floating-whatsapp">

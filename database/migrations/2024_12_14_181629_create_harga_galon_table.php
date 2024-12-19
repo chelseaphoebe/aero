@@ -13,7 +13,6 @@ return new class extends Migration {
         Schema::create('harga_galon', function (Blueprint $table) {
             $table->id();
             $table->decimal('price', 8, 2); // Assuming "harga" is a price or cost column
-            $
             $table->timestamps();
         });
     }
