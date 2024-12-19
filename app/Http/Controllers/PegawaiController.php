@@ -14,30 +14,25 @@ class PegawaiController extends Controller
             // Get query parameters
             $perPage = $request->input('per_page', 10);
             $search = $request->input('search', null);
-    
-            // Retrieve all records initially
-            $allPegawai = Pegawai::all();
-    
-            // Start the query for search and pagination
+
             $query = Pegawai::query();
-    
+
             // Apply search filter if search is not empty
             if (!is_null($search) && trim($search) !== '') {
                 $query->where('nama', 'like', "%{$search}%")
-                      ->orWhere('no_hp', 'like', "%{$search}%");
+                    ->orWhere('no_hp', 'like', "%{$search}%");
             }
-    
+
             // Paginate the results, sorted by ascending ID
             $pegawai = $query->orderBy('id', 'asc')->paginate($perPage);
-    
+
             // Metadata for pagination
             $from = $pegawai->firstItem() ?? 0;
             $to = $pegawai->lastItem() ?? 0;
-    
+
             // Pass data to the view
             return view('datapegawai.index', [
                 'pegawai' => $pegawai,       // Filtered and paginated records
-                'allPegawai' => $allPegawai, // All records (unfiltered)
                 'perPage' => $perPage,
                 'totalData' => $pegawai->total(),
                 'from' => $from,
@@ -81,7 +76,7 @@ class PegawaiController extends Controller
     {
         try {
             $pegawai = Pegawai::findOrFail($id);
-    
+
             return response()->json([
                 'success' => true,
                 'data' => $pegawai,
@@ -109,17 +104,17 @@ class PegawaiController extends Controller
                 'nama' => 'required|string|max:255',
                 'no_hp' => 'required|string|max:15',
             ]);
-    
-            $pegawai = Pegawai::findOrFail($id); 
+
+            $pegawai = Pegawai::findOrFail($id);
             $isUpdated = $pegawai->update($validatedData);
-    
+
             if (!$isUpdated) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Tidak ada perubahan data',
                 ], 200);
             }
-    
+
             return response()->json([
                 'success' => true,
                 'message' => 'Data pegawai berhasil diupdate',
