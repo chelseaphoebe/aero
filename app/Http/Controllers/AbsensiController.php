@@ -10,89 +10,72 @@ class AbsensiController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil jumlah data per halaman dari request, default 10
         $perPage = $request->input('per_page', 10);
         $search = $request->input('search', '');
-        
-        $query = DB::table('absensi as a')
-            ->join('pegawai as p', 'a.pegawai_id', '=', 'p.id')
-            ->select([
-                'a.id',
-                'p.nama',
-                'a.tanggal',
-                'a.created_at'
-            ]);
-            
-        // Tambahkan filter pencarian jika ada
-        if (!empty($search)) {
-            $query->where('p.nama', 'like', "%{$search}%")
-                  ->orWhere('a.tanggal', 'like', "%{$search}%");
-        }
-        
-        // Hitung total data sebelum pagination
-        $totalData = $query->count();
-        
-        // Ambil data dengan pagination
-        $absensi = $query->orderBy('a.tanggal', 'desc')
-                        ->paginate($perPage);
-        
-        // Hitung data yang ditampilkan
+
+        $absensi = Absensi::with('pegawai') // Eager load relasi pegawai
+            ->when($search, function ($query) use ($search) {
+                return $query->whereHas('pegawai', function ($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%");
+                })->orWhere('tanggal', 'like', "%{$search}%")
+                  ->orWhere('keterangan', 'like', "%{$search}%");
+            })
+            ->orderBy('tanggal', 'desc')
+            ->paginate($perPage);
+
         $showing = $absensi->total();
         $from = $absensi->firstItem() ?? 0;
         $to = $absensi->lastItem() ?? 0;
 
-        $pegawai = DB::table('pegawai')->get();
-
         return view('absensi.index', compact(
-            'absensi', 
-            'pegawai', 
+            'absensi',
             'perPage',
-            'totalData',
             'showing',
             'from',
             'to'
         ));
     }
 
+    public function create()
+    {
+        // Ambil data pegawai untuk pilihan pada form
+        $pegawais = DB::table('pegawai')->get();
+        
+        // Kirim variabel pegawais ke view
+        return view('absensi.create', compact('pegawais'));
+    }
+
     public function store(Request $request)
     {
-        try {
-            $request->validate([
-                'pegawai_id' => 'required|exists:pegawai,id',
-                'tanggal' => 'required|date'
+        $request->validate([
+            'pegawai_id' => 'required|exists:pegawai,id',
+            'tanggal' => 'required|date',
+            'keterangan' => 'nullable|string|max:255', // Validasi untuk keterangan
+        ]);
+
+        // Cek apakah sudah absen pada tanggal ini
+        $exists = DB::table('absensi')
+            ->where('pegawai_id', $request->pegawai_id)
+            ->where('tanggal', $request->tanggal)
+            ->exists();
+
+        if ($exists) {
+            return redirect()->route('absensi.create')->withErrors([
+                'error' => 'Pegawai sudah absen pada tanggal ini.'
             ]);
-
-            // Cek apakah sudah absen hari ini
-            $exists = DB::table('absensi')
-                ->where('pegawai_id', $request->pegawai_id)
-                ->where('tanggal', $request->tanggal)
-                ->exists();
-
-            if ($exists) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Pegawai sudah absen pada tanggal ini'
-                ], 422);
-            }
-
-            DB::table('absensi')->insert([
-                'pegawai_id' => $request->pegawai_id,
-                'tanggal' => $request->tanggal,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Absensi berhasil dicatat'
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
         }
+
+        // Simpan data absensi
+        DB::table('absensi')->insert([
+            'pegawai_id' => $request->pegawai_id,
+            'tanggal' => $request->tanggal,
+            'keterangan' => $request->keterangan, // Simpan keterangan jika ada
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        // Redirect ke halaman tambah dengan pesan sukses
+        return redirect()->route('absensi.create')->with('success', 'Absensi berhasil disimpan.');
     }
 
     public function filter(Request $request)
@@ -103,13 +86,16 @@ class AbsensiController extends Controller
                 'a.id',
                 'p.nama',
                 'a.tanggal',
+                'a.keterangan', // Tambahkan kolom keterangan
                 'a.created_at'
             ]);
 
+        // Filter berdasarkan pegawai
         if ($request->pegawai_id) {
             $query->where('a.pegawai_id', $request->pegawai_id);
         }
 
+        // Filter berdasarkan rentang tanggal
         if ($request->tanggal_mulai) {
             $query->where('a.tanggal', '>=', $request->tanggal_mulai);
         }
@@ -122,7 +108,8 @@ class AbsensiController extends Controller
 
         return response()->json($absensi);
     }
-        public function destroy($id)
+
+    public function destroy($id)
     {
         try {
             $absensi = Absensi::findOrFail($id); // Cari data absensi berdasarkan ID
@@ -139,4 +126,26 @@ class AbsensiController extends Controller
             ], 500);
         }
     }
+
+    public function edit($id)
+    {
+        $absensi = Absensi::findOrFail($id);
+        $pegawais = DB::table('pegawai')->get(); // Ambil daftar pegawai untuk dropdown
+        return view('absensi.edit', compact('absensi', 'pegawais'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'pegawai_id' => 'required|exists:pegawai,id',
+            'tanggal' => 'required|date',
+            'keterangan' => 'nullable|string|max:255',
+        ]);
+
+        $absensi = Absensi::findOrFail($id);
+        $absensi->update($request->only(['pegawai_id', 'tanggal', 'keterangan']));
+
+        return redirect()->route('absensi.index')->with('success', 'Absensi berhasil diperbarui.');
+    }
+
 }

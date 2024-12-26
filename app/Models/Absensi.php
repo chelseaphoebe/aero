@@ -9,11 +9,11 @@ class Absensi extends Model
     use HasFactory;
 
     protected $table = 'absensi';
-    protected $fillable = ['pegawai_id', 'tanggal'];
+    protected $fillable = ['pegawai_id', 'tanggal', 'keterangan'];
 
     public function pegawai()
     {
-        return $this->belongsTo(Pegawai::class);
+        return $this->belongsTo(Pegawai::class, 'pegawai_id', 'id');
     }
 
     // Method untuk menghitung total absensi pegawai
